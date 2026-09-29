@@ -1,0 +1,32 @@
+{
+    "cSpell.words": [
+        "chunkhash",
+        "commitlint",
+        "esbuild",
+        "miniprogram",
+        "projectname",
+        "pxtransform",
+        "tarojs",
+        "touristappid",
+        "weapp"
+    ],
+
+    "html.validate.scripts": false,
+
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "always"
+    },
+    "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+
+    "json.schemas": [
+        {
+            "fileMatch": ["**/*.jsonc", "**/.eslintrc"],
+            "schema": {
+                "allowTrailingCommas": true,
+                "allowComments": true
+            }
+        }
+    ]
+}
