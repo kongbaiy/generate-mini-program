@@ -1,4 +1,14 @@
 {
+    "json.schemas": [
+        {
+            "fileMatch": ["**/*.jsonc", "**/.eslintrc"],
+            "schema": {
+                "allowTrailingCommas": true,
+                "allowComments": true
+            }
+        }
+    ],
+
     "cSpell.words": [
         "chunkhash",
         "commitlint",
@@ -18,15 +28,5 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "always"
     },
-    "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
-
-    "json.schemas": [
-        {
-            "fileMatch": ["**/*.jsonc", "**/.eslintrc"],
-            "schema": {
-                "allowTrailingCommas": true,
-                "allowComments": true
-            }
-        }
-    ]
+    "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"]
 }

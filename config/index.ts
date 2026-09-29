@@ -27,7 +27,7 @@ export default defineConfig<'vite'>(async (merge) => {
         framework: 'react',
         compiler: 'vite',
         alias: {
-            '@': path.resolve(__dirname, 'src'),
+            '@': path.resolve(__dirname, '../src'),
         },
         mini: {
             postcss: {
