@@ -12,6 +12,7 @@
     "scripts": {
         "prepare": "husky",
         "generate": "node generate/page.ts",
+        "generate:project": "node generate/project.ts",
         "new": "taro new",
         "build:weapp": "taro build --type weapp",
         "build:swan": "taro build --type swan",
