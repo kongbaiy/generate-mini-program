@@ -1,0 +1,12 @@
+{
+    "pages": [
+        {
+            "name": "home",
+            "title": "首页",
+            "blocks": [
+                { "template": "Hero", "props": { "title": "欢迎来到首页" } },
+                { "template": "Footer" }
+            ]
+        }
+    ]
+}

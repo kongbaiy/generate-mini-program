@@ -9,9 +9,10 @@
         "css": "Sass",
         "framework": "React"
     },
+    "type": "module",
     "scripts": {
         "prepare": "husky",
-        "generate": "node generate/page.ts",
+        "generate": "tsx generate/index.ts",
         "new": "taro new",
         "build:weapp": "taro build --type weapp",
         "build:swan": "taro build --type swan",
@@ -90,6 +91,7 @@
         "stylelint": "^16.4.0",
         "stylelint-config-standard": "^38.0.0",
         "terser": "^5.30.4",
+        "tsx": "^4.23.15",
         "typescript": "^5.4.5",
         "vite": "^4.2.0"
     }

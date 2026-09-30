@@ -1,0 +1,20 @@
+{
+    "project": {
+        "name": "my-applet",
+        "description": "我的小程序",
+        "appid": "wx1234567890abcdef"
+    },
+    "window": {
+        "backgroundTextStyle": "light",
+        "navigationBarBackgroundColor": "#fff",
+        "navigationBarTitleText": "WeChat",
+        "navigationBarTextStyle": "black"
+    },
+    "pages": [
+        {
+            "name": "home",
+            "title": "首页",
+            "blocks": []
+        }
+    ]
+}
