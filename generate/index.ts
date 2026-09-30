@@ -5,6 +5,7 @@ createProject({
     copyFiles: [
         'config',
         'types',
+        'src/pages/home',
         '.editorconfig',
         '.env.development',
         '.env.production',

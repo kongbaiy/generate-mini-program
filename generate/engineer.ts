@@ -32,6 +32,11 @@ export const generateEngineer = (config: GenerateEngineerConfig) => {
 }
 
 const copyRecursive = (src: string, dest: string) => {
+    if (!fs.existsSync(src)) {
+        console.warn(`[skip] 源路径不存在: ${src}`)
+        return
+    }
+
     const stat = fs.statSync(src)
 
     if (stat.isDirectory()) {
