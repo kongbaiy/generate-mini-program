@@ -234,20 +234,25 @@ const copyRecursive = (src: string, dest: string) => {
     }
 
     const stat = fs.statSync(src)
+    const dependenciesPath = new Set<string>()
+
     if (stat.isDirectory()) {
         fs.mkdirSync(dest, { recursive: true })
 
         for (const item of fs.readdirSync(src)) {
             const abs = path.join(src, item)
-            let code = fs.readFileSync(abs, 'utf8')
+            const code = fs.readFileSync(abs, 'utf8')
             const ext = path.extname(abs).toLowerCase()
 
             // 脚本文件：解析 import / require / 动态 import
             if (SCRIPT_EXTENSIONS.has(ext)) {
                 for (const spec of extractScriptSpecifiers(code)) {
                     const resolved = resolveSpecifier(spec, abs, ALIAS, DEFAULT_EXTENSIONS)
-                    if (resolved)
+
+                    if (resolved && !dependenciesPath.has(resolved)) {
+                        dependenciesPath.add(resolved)
                         copyRecursive(resolved, path.join(dest, path.relative(src, resolved)))
+                    }
                 }
             }
 
@@ -256,12 +261,18 @@ const copyRecursive = (src: string, dest: string) => {
                 for (const spec of extractStyleSpecifiers(code)) {
                     const resolved = resolveSpecifier(spec, abs, ALIAS, DEFAULT_EXTENSIONS)
 
-                    if (resolved)
+                    if (resolved && !dependenciesPath.has(resolved)) {
+                        dependenciesPath.add(resolved)
                         copyRecursive(resolved, path.join(dest, path.relative(src, resolved)))
+                    }
                 }
             }
 
-            copyRecursive(path.join(src, item), path.join(dest, item))
+            const srcPath = path.join(src, item)
+            if (!dependenciesPath.has(srcPath)) {
+                dependenciesPath.add(srcPath)
+                copyRecursive(srcPath, path.join(dest, item))
+            }
         }
     } else {
         fs.mkdirSync(path.dirname(dest), { recursive: true })

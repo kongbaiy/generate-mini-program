@@ -5,7 +5,10 @@ createProject({
     copyFiles: [
         'config',
         'types',
-        'src/pages/home',
+        'src/app.config.ts',
+        'src/app.scss',
+        'src/app.ts',
+        'src/index.html',
         '.editorconfig',
         '.env.development',
         '.env.production',
