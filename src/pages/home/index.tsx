@@ -1,14 +1,16 @@
 import React from 'react'
+import { View } from '@tarojs/components'
 
-import Button from '@/components/button'
+import List from '../../components/list'
+import styles from './index.module.scss'
 
 
 export default class Index extends React.Component {
     render() {
         return (
             <>
-                <div>11</div>
-                <Button />
+                <View className={styles.red}>11</View>
+                <List />
             </>
         )
     }

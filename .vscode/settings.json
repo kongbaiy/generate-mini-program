@@ -10,15 +10,19 @@
     ],
 
     "cSpell.words": [
+        "acss",
         "chunkhash",
         "commitlint",
         "esbuild",
         "miniprogram",
         "projectname",
         "pxtransform",
+        "styl",
         "tarojs",
         "touristappid",
-        "weapp"
+        "weapp",
+        "wxml",
+        "wxss"
     ],
 
     "html.validate.scripts": false,
