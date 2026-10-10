@@ -2,14 +2,19 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { parse } from '@babel/parser'
 
+import { createPage } from './create'
+import schemas from '../schemas/pages.json'
+
 interface GenerateEngineerConfig {
     inputDir: string
     outputDir: string
+    excludeFiles?: string[]
 }
 
 interface ProjectOptions {
     projectName: string
     copyFiles: (GenerateEngineerConfig | string)[]
+    excludeFiles?: string[]
 }
 
 const rootPath = process.cwd()
@@ -58,10 +63,13 @@ const DEFAULT_EXTENSIONS = [
     '.gif',
     '.webp',
 ]
-const SCRIPT_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.vue'])
-const STYLE_EXTENSIONS = new Set(['.css', '.less', '.scss', '.sass', '.styl'])
+export const SCRIPT_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.vue'])
+export const STYLE_EXTENSIONS = new Set(['.css', '.less', '.scss', '.sass', '.styl'])
 
-const extractScriptSpecifiers = (code: string): string[] => {
+export const copied = new Set<string>()
+export const SKIP_DIRS = new Set(['.git', 'node_modules', 'generated', 'dist', '.DS_Store'])
+
+export const extractScriptSpecifiers = (code: string): string[] => {
     const specs = new Set<string>()
     let ast: ReturnType<typeof parse>
 
@@ -147,7 +155,7 @@ const walkAst = (node: any, visit: (n: any) => void) => {
     }
 }
 
-const resolveSpecifier = (
+export const resolveSpecifier = (
     spec: string,
     fromFile: string,
     alias: Record<string, string[]>,
@@ -201,7 +209,7 @@ const isFile = (p: string) => {
     }
 }
 
-const extractStyleSpecifiers = (code: string): string[] => {
+export const extractStyleSpecifiers = (code: string): string[] => {
     const specs = new Set<string>()
 
     // 去注释
@@ -227,65 +235,130 @@ const extractStyleSpecifiers = (code: string): string[] => {
     return [...specs]
 }
 
-const copyRecursive = (src: string, dest: string) => {
+export const dependenciesCollect = (
+    projectName: string,
+    abs: string,
+    callback?: (resolved: any) => void
+) => {
+    const ext = path.extname(abs).toLowerCase()
+
+    if (SCRIPT_EXTENSIONS.has(ext) || STYLE_EXTENSIONS.has(ext)) {
+        const code = fs.readFileSync(abs, 'utf8')
+        const specs = SCRIPT_EXTENSIONS.has(ext)
+            ? extractScriptSpecifiers(code)
+            : extractStyleSpecifiers(code)
+
+        for (const spec of specs) {
+            const resolved = resolveSpecifier(
+                spec,
+                abs.replace(`/generated/${projectName}`, ''),
+                ALIAS,
+                DEFAULT_EXTENSIONS
+            )
+            if (resolved) {
+                callback?.(resolved)
+            }
+        }
+    }
+}
+
+const copyRecursive = (src: string, dest: string, excludeFiles: string[] = []) => {
     if (!fs.existsSync(src)) {
         console.warn(`[skip] 源路径不存在: ${src}`)
         return
     }
 
-    const stat = fs.statSync(src)
-    const dependenciesPath = new Set<string>()
+    const abs = path.resolve(src)
+    if (copied.has(abs)) return
+    copied.add(abs)
+
+    const stat = fs.lstatSync(abs)
+
+    if (stat.isSymbolicLink()) {
+        console.warn(`[skip] 符号链接: ${abs}`)
+        return
+    }
 
     if (stat.isDirectory()) {
         fs.mkdirSync(dest, { recursive: true })
 
-        for (const item of fs.readdirSync(src)) {
-            const abs = path.join(src, item)
-            const code = fs.readFileSync(abs, 'utf8')
-            const ext = path.extname(abs).toLowerCase()
+        for (const item of fs.readdirSync(abs)) {
+            if (SKIP_DIRS.has(item)) continue
 
-            // 脚本文件：解析 import / require / 动态 import
-            if (SCRIPT_EXTENSIONS.has(ext)) {
-                for (const spec of extractScriptSpecifiers(code)) {
-                    const resolved = resolveSpecifier(spec, abs, ALIAS, DEFAULT_EXTENSIONS)
+            const exclude = excludeFiles.some((ex) => ex.includes(item))
+            if (exclude) continue
 
-                    if (resolved && !dependenciesPath.has(resolved)) {
-                        dependenciesPath.add(resolved)
-                        copyRecursive(resolved, path.join(dest, path.relative(src, resolved)))
+            const childAbs = path.join(abs, item)
+            const childStat = fs.lstatSync(childAbs)
+
+            if (childStat.isSymbolicLink()) continue
+
+            if (childStat.isDirectory()) {
+                copyRecursive(childAbs, path.join(dest, item), excludeFiles)
+                continue
+            }
+
+            if (!childStat.isFile()) continue
+
+            const ext = path.extname(childAbs).toLowerCase()
+
+            if (SCRIPT_EXTENSIONS.has(ext) || STYLE_EXTENSIONS.has(ext)) {
+                const code = fs.readFileSync(childAbs, 'utf8')
+                const specs = SCRIPT_EXTENSIONS.has(ext)
+                    ? extractScriptSpecifiers(code)
+                    : extractStyleSpecifiers(code)
+
+                for (const spec of specs) {
+                    const resolved = resolveSpecifier(spec, childAbs, ALIAS, DEFAULT_EXTENSIONS)
+                    if (resolved) {
+                        copyRecursive(
+                            resolved,
+                            path.join(dest, path.relative(abs, resolved)),
+                            excludeFiles
+                        )
                     }
                 }
             }
 
-            // 样式文件：解析 @import / @use / @forward / url()
-            if (STYLE_EXTENSIONS.has(ext)) {
-                for (const spec of extractStyleSpecifiers(code)) {
-                    const resolved = resolveSpecifier(spec, abs, ALIAS, DEFAULT_EXTENSIONS)
-
-                    if (resolved && !dependenciesPath.has(resolved)) {
-                        dependenciesPath.add(resolved)
-                        copyRecursive(resolved, path.join(dest, path.relative(src, resolved)))
-                    }
-                }
-            }
-
-            const srcPath = path.join(src, item)
-            if (!dependenciesPath.has(srcPath)) {
-                dependenciesPath.add(srcPath)
-                copyRecursive(srcPath, path.join(dest, item))
-            }
+            const childDest = path.join(dest, item)
+            fs.mkdirSync(path.dirname(childDest), { recursive: true })
+            fs.copyFileSync(childAbs, childDest)
         }
     } else {
         fs.mkdirSync(path.dirname(dest), { recursive: true })
-        fs.copyFileSync(src, dest)
+        fs.copyFileSync(abs, dest)
     }
 }
 
 export const generateEngineer = (config: GenerateEngineerConfig) => {
-    copyRecursive(config.inputDir, config.outputDir)
+    copyRecursive(config.inputDir, config.outputDir, config.excludeFiles || [])
 }
 
 export const createProject = (options: ProjectOptions) => {
     const outputRootPath = path.join(rootPath, 'generated', options.projectName)
+
+    if (!options.copyFiles.length) {
+        fs.readdirSync(path.join(rootPath)).forEach((item) => {
+            const exclude = options.excludeFiles?.some((ex) => ex.includes(item))
+
+            if (SKIP_DIRS.has(item) || exclude) return
+
+            const inputDir = path.join(rootPath, item)
+            const outputDir = path.join(outputRootPath, item)
+
+            generateEngineer({
+                inputDir,
+                outputDir,
+                excludeFiles: options.excludeFiles,
+            })
+        })
+        createPage({
+            templates: schemas.pagesConfig.templates as any[],
+            projectName: options.projectName,
+        })
+
+        return
+    }
 
     options.copyFiles?.forEach((item) => {
         const inputDir = typeof item === 'string' ? item : item.inputDir
@@ -294,6 +367,12 @@ export const createProject = (options: ProjectOptions) => {
         generateEngineer({
             inputDir: path.join(rootPath, inputDir),
             outputDir: path.join(outputRootPath, outputDir),
+            excludeFiles: options.excludeFiles,
+        })
+
+        createPage({
+            templates: schemas.pagesConfig.templates as any[],
+            projectName: options.projectName,
         })
     })
 }

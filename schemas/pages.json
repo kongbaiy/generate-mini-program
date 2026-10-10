@@ -1,0 +1,16 @@
+{
+    "pagesConfig": {
+        "templates": [
+            {
+                "content": "export default definePageConfig({\n    navigationBarTitleText: '首页',\n})",
+                "path": "pages/home/index.config.ts",
+                "type": "config"
+            },
+            {
+                "content": "import React from 'react'\nimport { View } from '@tarojs/components'\n\nimport List from '../../components/list'\nimport styles from './index.module.scss'\n\n\nexport default class Index extends React.Component {\n    render() {\n        return (\n            <>\n                <View className={styles.red}>22</View>\n                <List />\n            </>\n        )\n    }\n}\n",
+                "path": "pages/home/index.tsx",
+                "type": "page"
+            }
+        ]
+    }
+}
