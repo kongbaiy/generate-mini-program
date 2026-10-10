@@ -1,6 +1,5 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import { dependenciesCollect } from './engineer'
 
 interface Templates {
     content: string
@@ -14,23 +13,15 @@ interface CreateOptions {
 }
 
 export const createPage = (options: CreateOptions, callback?: () => void) => {
-    const outputDir = `generated/${options.projectName}/src`
-    const generatedDir = path.resolve(outputDir)
-    const existsDir = fs.existsSync(generatedDir)
+    const outputDir = path.join(process.cwd(), 'generated', options.projectName, 'src')
 
-    if (!existsDir) fs.mkdirSync(generatedDir, { recursive: true })
+    fs.mkdirSync(outputDir, { recursive: true })
 
     for (const template of options.templates) {
-        const templatePath = path.join(generatedDir, template.path)
+        const templatePath = path.join(outputDir, template.path)
 
         fs.mkdirSync(path.dirname(templatePath), { recursive: true })
         fs.writeFileSync(templatePath, template.content)
-        dependenciesCollect(options.projectName, templatePath, (resolved) => {
-            const output = resolved.replace('src', outputDir)
-
-            fs.mkdirSync(path.dirname(output), { recursive: true })
-            fs.copyFileSync(resolved, output)
-        })
     }
 
     callback?.()
