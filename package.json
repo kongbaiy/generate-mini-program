@@ -12,7 +12,7 @@
     "type": "module",
     "scripts": {
         "prepare": "husky",
-        "generate": "tsx generate/index.ts",
+        "generate": "tsx generator/index.ts",
         "new": "taro new",
         "build:weapp": "taro build --type weapp",
         "build:swan": "taro build --type swan",

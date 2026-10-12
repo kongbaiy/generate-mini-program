@@ -23,6 +23,6 @@
             "@/*": ["./src/*"]
         }
     },
-    "include": ["./src", "./types", "./config", "./generate"],
+    "include": ["./src", "./types", "./config", "generator"],
     "compileOnSave": false
 }
