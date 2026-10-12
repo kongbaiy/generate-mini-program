@@ -9,7 +9,7 @@ export default class Index extends React.Component {
     render() {
         return (
             <>
-                <View className={styles.red}>11</View>
+                <View className={styles.red}>22</View>
                 <List />
             </>
         )

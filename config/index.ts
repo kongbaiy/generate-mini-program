@@ -4,11 +4,12 @@ import path from 'path'
 import devConfig from './dev'
 import prodConfig from './prod'
 
-// https://docs.taro.zone/docs/config#defineconfig-辅助函数
+import schemas from '../schemas/pages.json'
+
 export default defineConfig<'vite'>(async (merge) => {
     const baseConfig: UserConfigExport<'vite'> = {
-        projectName: 'applet-platform',
-        date: '2026-09-28',
+        projectName: schemas?.projectName,
+        date: new Date().toLocaleDateString().replace(/\//g, '-'),
         designWidth: 750,
         deviceRatio: {
             640: 2.34 / 2,
