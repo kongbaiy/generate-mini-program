@@ -2,8 +2,6 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { execSync } from 'node:child_process'
 
-import { wxAppUpload } from './config/wx'
-
 interface Templates {
     content: string
     path: string
@@ -24,6 +22,11 @@ export interface Options extends PageOptions {
 interface BuildOptions {
     successCallback?: () => void
     errorCallback?: (message: unknown) => void
+}
+
+interface GenerateCallbackOptions {
+    status: boolean
+    message?: unknown
 }
 
 export class Generator {
@@ -98,12 +101,12 @@ export class Generator {
             }
 
             console.error('❌ 构建失败')
-            process.exit(1)
             options.errorCallback?.(execError)
+            process.exit(1)
         }
     }
 
-    generate() {
+    generate(callback?: (options: GenerateCallbackOptions) => void) {
         this.setAppId()
         this.createAppConfig()
         this.createPage(
@@ -113,14 +116,15 @@ export class Generator {
             () => {
                 this.build({
                     successCallback() {
-                        wxAppUpload({
-                            errorCallback(message) {
-                                console.log('wxAppUpload error message: ', message)
-                            },
+                        callback?.({
+                            status: true,
                         })
                     },
                     errorCallback(message) {
-                        console.log('build error message: ', message)
+                        callback?.({
+                            status: false,
+                            message,
+                        })
                     },
                 })
             }
