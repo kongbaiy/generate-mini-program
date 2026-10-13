@@ -2,7 +2,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { execSync } from 'node:child_process'
 
-import { wxAppUpload } from './upload/wx'
+import { wxAppUpload } from './config/wx'
 
 interface Templates {
     content: string
