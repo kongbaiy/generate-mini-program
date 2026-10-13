@@ -1,6 +1,8 @@
 {
+    "id": "123123",
+    "version": "1.0.0",
+    "appid": "adc",
     "projectName": "adc",
-    "appId": "adc",
     "templates": [
         {
             "content": "export default definePageConfig({\n    navigationBarTitleText: '首页',\n})",

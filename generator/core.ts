@@ -2,6 +2,8 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { execSync } from 'node:child_process'
 
+import { wxAppUpload } from './upload/wx'
+
 interface Templates {
     content: string
     path: string
@@ -13,25 +15,32 @@ export interface PageOptions {
 }
 
 export interface Options extends PageOptions {
-    appId: string
+    id: string
+    version: string
+    appid: string
     appConfig: Record<string, unknown>
 }
 
+interface BuildOptions {
+    successCallback?: () => void
+    errorCallback?: (message: unknown) => void
+}
+
 export class Generator {
-    private appId: string = ''
+    private appid: string = ''
     private templates: Templates[] = []
     private appConfig: Options['appConfig'] = {}
 
     constructor(options: Options) {
-        this.appId = options.appId
+        this.appid = options.appid
         this.templates = options.templates
         this.appConfig = options.appConfig
     }
 
     setAppId() {
-        upsert('./.env.development', 'TARO_APP_ID', this.appId)
-        upsert('./.env.production', 'TARO_APP_ID', this.appId)
-        upsert('./.env.test', 'TARO_APP_ID', this.appId)
+        upsert('./.env.development', 'TARO_APP_ID', this.appid)
+        upsert('./.env.production', 'TARO_APP_ID', this.appid)
+        upsert('./.env.test', 'TARO_APP_ID', this.appid)
     }
 
     createAppConfig() {
@@ -57,6 +66,43 @@ export class Generator {
         callback?.()
     }
 
+    build(options: BuildOptions = {}) {
+        try {
+            execSync('npm run build:weapp', {
+                stdio: ['inherit', 'pipe', 'pipe'],
+                encoding: 'utf-8',
+                cwd: process.cwd(),
+            })
+
+            options.successCallback?.()
+        } catch (error) {
+            const execError = error as Error & {
+                stdout?: string | Buffer
+                stderr?: string | Buffer
+            }
+
+            if (execError.stdout) {
+                process.stdout.write(
+                    typeof execError.stdout === 'string'
+                        ? execError.stdout
+                        : execError.stdout.toString()
+                )
+            }
+
+            if (execError.stderr) {
+                process.stderr.write(
+                    typeof execError.stderr === 'string'
+                        ? execError.stderr
+                        : execError.stderr.toString()
+                )
+            }
+
+            console.error('❌ 构建失败')
+            process.exit(1)
+            options.errorCallback?.(execError)
+        }
+    }
+
     generate() {
         this.setAppId()
         this.createAppConfig()
@@ -65,9 +111,17 @@ export class Generator {
                 templates: this.templates,
             },
             () => {
-                execSync('npm run build:weapp', {
-                    stdio: 'inherit',
-                    cwd: process.cwd(),
+                this.build({
+                    successCallback() {
+                        wxAppUpload({
+                            errorCallback(message) {
+                                console.log('wxAppUpload error message: ', message)
+                            },
+                        })
+                    },
+                    errorCallback(message) {
+                        console.log('build error message: ', message)
+                    },
                 })
             }
         )
