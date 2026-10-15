@@ -46,7 +46,7 @@ export default defineConfig<'vite'>(async (merge) => {
             },
         },
         h5: {
-            publicPath: '/',
+            publicPath: './',
             staticDirectory: 'static',
 
             miniCssExtractPluginOption: {
@@ -54,6 +54,7 @@ export default defineConfig<'vite'>(async (merge) => {
                 filename: 'css/[name].[hash].css',
                 chunkFilename: 'css/[name].[chunkhash].css',
             },
+
             postcss: {
                 autoprefixer: {
                     enable: true,
@@ -84,6 +85,7 @@ export default defineConfig<'vite'>(async (merge) => {
         // 本地开发构建配置（不混淆压缩）
         return merge({}, baseConfig, devConfig)
     }
+
     // 生产构建配置（默认开启压缩混淆等）
     return merge({}, baseConfig, prodConfig)
 })

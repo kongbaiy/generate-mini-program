@@ -14,11 +14,11 @@ const generatorInstance = new Generator({
 
 generatorInstance.generate((res) => {
     if (res.status) {
-        wxAppUpload({
-            errorCallback() {
-                console.log('wxAppUpload error')
-            },
-        })
+        // wxAppUpload({
+        //     errorCallback() {
+        //         console.log('wxAppUpload error')
+        //     },
+        // })
     } else {
         console.log('打包失败')
     }

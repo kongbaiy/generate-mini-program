@@ -1,4 +1,5 @@
 import path from 'node:path'
+import fs from 'node:fs'
 import ci from 'miniprogram-ci'
 import { MiniProgramCI } from 'miniprogram-ci/dist/@types/types'
 
@@ -18,6 +19,15 @@ const project = new ci.Project({
 })
 
 export async function wxAppUpload(options: Upload = {}) {
+    const privateKeyPath = path.join(process.cwd(), 'config/wx/private.key')
+
+    if (!fs.existsSync(privateKeyPath)) {
+        const error = new Error(`密钥文件不存在: ${privateKeyPath}`)
+
+        options.errorCallback?.(error)
+        return
+    }
+
     try {
         const result = await ci.upload({
             project,

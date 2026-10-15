@@ -31,19 +31,13 @@
         "dev:rn": "npm run build:rn -- --watch",
         "dev:qq": "npm run build:qq -- --watch",
         "dev:jd": "npm run build:jd -- --watch",
-        "dev:harmony-hybrid": "npm run build:harmony-hybrid -- --watch"
+        "dev:harmony-hybrid": "npm run build:harmony-hybrid -- --watch",
+        "build:ui": "TARO_BUILD_TYPE=ui taro build --type h5"
     },
-    "browserslist": {
-        "development": [
-            "defaults and fully supports es6-module",
-            "maintained node versions"
-        ],
-        "production": [
-            "last 3 versions",
-            "Android >= 4.1",
-            "ios >= 8"
-        ]
-    },
+    "browserslist": [
+        "defaults and fully supports es6-module",
+        "maintained node versions"
+    ],
     "author": "",
     "dependencies": {
         "@babel/runtime": "^7.24.4",
@@ -69,6 +63,7 @@
     "devDependencies": {
         "@babel/core": "^7.24.4",
         "@babel/generator": "^8.0.6",
+        "@babel/helper-compilation-targets": "^8.0.7",
         "@babel/parser": "^7.29.9",
         "@babel/plugin-transform-class-properties": "7.25.9",
         "@babel/preset-react": "^7.24.1",
