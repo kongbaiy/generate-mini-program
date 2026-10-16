@@ -32,7 +32,7 @@
         "dev:qq": "npm run build:qq -- --watch",
         "dev:jd": "npm run build:jd -- --watch",
         "dev:harmony-hybrid": "npm run build:harmony-hybrid -- --watch",
-        "build:ui": "TARO_BUILD_TYPE=ui taro build --type h5"
+        "build:ui": "vite build --config config/ui.ts"
     },
     "browserslist": [
         "defaults and fully supports es6-module",
