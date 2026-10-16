@@ -45,6 +45,9 @@ interface NodeServerSend {
     onError?: (err: Error) => void
 }
 
+type NodeServerMethodOtherOptions =
+    Parameters<NodeServer['sendPromise']> extends [unknown, ...infer Rest] ? Rest : never
+
 export class Generator {
     private appid: string = ''
     private templates: Templates[] = []
@@ -223,5 +226,43 @@ export class NodeServer {
         if (bodyString) req.write(bodyString)
 
         req.end()
+    }
+
+    sendPromise(
+        method: NodeServerSend['method'],
+        url: string,
+        body?: NodeServerSend['body'],
+        otherOptions?: Omit<NodeServerSend, 'method' | 'url' | 'body'>
+    ) {
+        return new Promise((resolve, reject) => {
+            this.send({
+                method,
+                url,
+                body,
+                ...otherOptions,
+                onSuccess: (res) => {
+                    resolve(res.data)
+                },
+                onError: (err) => {
+                    reject(err)
+                },
+            })
+        })
+    }
+
+    post(...args: NodeServerMethodOtherOptions) {
+        return this.sendPromise('POST', ...args)
+    }
+
+    get(...args: NodeServerMethodOtherOptions) {
+        return this.sendPromise('GET', ...args)
+    }
+
+    put(...args: NodeServerMethodOtherOptions) {
+        return this.sendPromise('PUT', ...args)
+    }
+
+    delete(...args: NodeServerMethodOtherOptions) {
+        return this.sendPromise('DELETE', ...args)
     }
 }
