@@ -1,6 +1,8 @@
 import path from 'node:path'
 import fs from 'node:fs'
 import { execSync } from 'node:child_process'
+import https from 'node:https'
+import http from 'node:http'
 
 interface Templates {
     content: string
@@ -27,6 +29,20 @@ interface BuildOptions {
 interface GenerateCallbackOptions {
     status: boolean
     message?: unknown
+}
+
+interface NodeServerSend {
+    url: string
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    headers?: Record<string, string>
+    body?: unknown
+    timeout?: number
+    onSuccess?: (res: {
+        statusCode: number
+        headers: http.IncomingHttpHeaders
+        data: string
+    }) => void
+    onError?: (err: Error) => void
 }
 
 export class Generator {
@@ -140,4 +156,72 @@ async function upsert(filePath: string, key: string, value: string) {
     else readContent = readContent.trimEnd() + `\n${key}='${value}'\n`
 
     await fs.promises.writeFile(filePath, readContent, 'utf8')
+}
+
+export class NodeServer {
+    constructor() {}
+
+    send(options: NodeServerSend) {
+        const {
+            url,
+            method = 'POST',
+            headers = {},
+            body,
+            timeout = 5000,
+            onSuccess,
+            onError,
+        } = options
+
+        let verifiedUrl: URL
+
+        try {
+            verifiedUrl = new URL(url)
+        } catch (err) {
+            onError?.(new Error(`Invalid URL: ${url}`))
+            return
+        }
+
+        const client = verifiedUrl.protocol === 'https:' ? https : http
+        const newHeaders = {
+            'Content-Type': 'application/json',
+            ...headers,
+        }
+        const bodyString = body !== undefined ? JSON.stringify(body) : ''
+
+        if (bodyString) newHeaders['Content-Length'] = String(Buffer.byteLength(bodyString))
+
+        const req = client.request(
+            {
+                method,
+                hostname: verifiedUrl.hostname,
+                port: verifiedUrl.port || (verifiedUrl.protocol === 'https:' ? 443 : 80),
+                path: verifiedUrl.pathname + verifiedUrl.search,
+                headers: newHeaders,
+                timeout,
+            },
+            (res) => {
+                let data = ''
+                res.setEncoding('utf8')
+                res.on('data', (chunk) => (data += chunk))
+                res.on('end', () => {
+                    onSuccess?.({
+                        statusCode: res.statusCode ?? 0,
+                        headers: res.headers,
+                        data,
+                    })
+                })
+            }
+        )
+
+        req.on('error', (err) => {
+            onError?.(err)
+        })
+        req.on('timeout', () => {
+            req.destroy(new Error(`Request timeout after ${timeout}ms`))
+        })
+
+        if (bodyString) req.write(bodyString)
+
+        req.end()
+    }
 }
