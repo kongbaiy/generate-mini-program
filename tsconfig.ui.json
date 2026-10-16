@@ -1,0 +1,16 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "esnext",
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "dist-ui/types",
+        "rootDir": "src/components",
+        "noEmit": false,
+        "sourceMap": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "skipLibCheck": true
+    },
+    "include": ["src/components"]
+}

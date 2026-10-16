@@ -1,8 +1,14 @@
 {
-    "name": "applet-platform",
+    "name": "generate-mini-program",
     "version": "1.0.0",
     "private": true,
     "description": "小程序开发",
+    "main": "dist-ui/index.umd.js",
+    "module": "dist-ui/index.es.js",
+    "types": "dist-ui/types/index.d.ts",
+    "files": [
+        "dist-ui"
+    ],
     "templateInfo": {
         "name": "default",
         "typescript": true,
@@ -32,7 +38,7 @@
         "dev:qq": "npm run build:qq -- --watch",
         "dev:jd": "npm run build:jd -- --watch",
         "dev:harmony-hybrid": "npm run build:harmony-hybrid -- --watch",
-        "build:ui": "vite build --config config/ui.ts --mode lib-es && vite build --config config/ui.ts --mode lib-umd"
+        "build:ui": "vite build --config config/ui.ts --mode lib-es && vite build --config config/ui.ts --mode lib-umd && tsc -p tsconfig.ui.json"
     },
     "browserslist": [
         "defaults and fully supports es6-module",
