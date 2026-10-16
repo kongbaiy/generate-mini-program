@@ -6,7 +6,6 @@ const root = path.resolve(__dirname.replace('/config', ''))
 
 export default defineConfig({
     root,
-    // configFile: false,
     plugins: [react()],
     define: {
         'process.env.TARO_ENV': '"h5"',

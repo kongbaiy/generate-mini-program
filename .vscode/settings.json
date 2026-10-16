@@ -16,6 +16,7 @@
         "esbuild",
         "miniprogram",
         "projectname",
+        "protobufjs",
         "pxtransform",
         "styl",
         "tarojs",
